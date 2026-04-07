@@ -72,7 +72,64 @@ dataset = load_dataset("Monosail/VIPER")
 - `reference_texts`: Ground-truth text descriptions
 - `protocol`: Process-level task constraints
 
-## 🛠️ Evaluation (Coming Soon)
+## 🛠️ Evaluation
+
+The evaluation pipeline is split into two stages: **inference** and **judgement**.
+During **inference**, we provide scripts to generate inference outputs on the **VIPER** datasets using the following supported models:
+- **Closed-source (API)**
+  - Sora2  
+  - Veo3.1  
+  - Seedance 1.5 Pro (Opened)  
+  - Wan2.6 (Opened)  
+- **Open-source**
+  - Wan2.2  
+  - Hunyuan-1.5  
+During **judgement**, we use the **OpenRouter API** and default to **gpt-5**. You may use any MLLM as long as it is compatible with the provider endpoint.
+
+### Inference
+
+#### Seedance 1.5 pro
+
+To run video inference with Seedance 1.5 Pro:
+```bash
+bash scripts/run_sd.sh
+```
+Prerequisites:
+
+- Apply for the [Seedance API](https://console.volcengine.com/ark/region:ark+cn-beijing/model/detail?Id=doubao-seedance-1-5-pro)
+- Set the environment variable `ARK_API_KEY`
+
+#### Wan2.6
+
+To run video inference with Wan2.6:
+
+```bash
+bash scripts/run_wan26.sh
+```
+Prerequisites:
+
+- Apply for the [Wan2.6 api](https://bailian.console.aliyun.com/cn-beijing/#/home)
+- Set the environment variable `DASHSCOPE_API_KEY`
+
+### Judgement
+
+The whole judgement consists of vlm-as-a-judge which calls external vlm for correctness and scoring which summaries the original returns into pass@k acc table, which are both covered in one script. 
+
+A sample command to run judgement on seedance model is provided below. Check the script for more info including running on single file, controlling the precise behavior or resume from former files.
+```bash
+eval/scripts/eval.sh \
+  --data_path ./results/video_inference/test_doubao-seedance-1-5-pro-251215 \
+  --output_path ./results/vlm_judge/test_doubao-seedance-1-5-pro-251215 \
+  --fps 1.0 \
+  --model_name gpt-5-chat-2025-08-07 \
+  --pass_k 1 \
+  --max_workers 8
+```
+
+Notes:
+- In our experiment, we use [OpenRouter](https://openrouter.ai/) as our API vendor to maximize compatibility. If you have access, put `OPENROUTER_API_KEY` in the `.env` file.
+- As far as we know, the OpenRouter API is compatible with official implementations. You can check and implement your API vendor in `eval/scripts/gpt-4o.py`.
+
 
 ## 📝 Citation
 
